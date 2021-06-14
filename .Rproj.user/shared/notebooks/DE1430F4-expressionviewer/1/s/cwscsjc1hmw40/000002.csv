@@ -1,0 +1,11 @@
+"0","library(shiny)
+library(grDevices)
+library(RColorBrewer)
+library(SGSeq)
+"
+"2","package ‘BiocGenerics’ was built under R version 4.0.5"
+"2","package ‘GenomeInfoDb’ was built under R version 4.0.5"
+"0","library(expressionviewer)"
+"2","Error in library(expressionviewer) : 
+  there is no package called ‘expressionviewer’
+"

@@ -57,7 +57,6 @@ ExpressionViewer <- function(experiment = counts, metaNames = "label.main",
     #Get genenames present in (all) experiment(s)
     if(is(experiment)[1] == "list" & is(experiment[[1]])[1] == "SummarizedExperiment"){
         autocompletelist <- list()
-        testlist <- list()
         for(i in 1:length(experiment)){
             testlist[[i]] <- rownames(experiment[[i]])}
         testlist <- unlist(testlist)
@@ -70,7 +69,6 @@ ExpressionViewer <- function(experiment = counts, metaNames = "label.main",
     }
     if(is(experiment)[1] == "list" & is(experiment[[1]])[1] == "SGFeatureCounts"){
         autocompletelist <- list()
-        testlist <- list()
         for(i in 1:length(experiment)){
             testlist[[i]] <- geneID(experiment[[i]])}
         testlist <- unlist(testlist)
@@ -106,7 +104,7 @@ ExpressionViewer <- function(experiment = counts, metaNames = "label.main",
 
 
     #server output/plotting specifications
-    server <- function(input, output){
+    shiny::server <- function(input, output){
         getPalette <- grDevices::colorRampPalette(rev(RColorBrewer::brewer.pal(9, "Spectral")))
         #Expression Viewer boxplot
         output$box <- shiny::renderPlot({

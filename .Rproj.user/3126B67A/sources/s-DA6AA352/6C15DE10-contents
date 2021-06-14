@@ -1,0 +1,97 @@
+library(shiny)
+library(celldex)
+library(ggplot2)
+library(RColorBrewer)
+library(SGSeq)
+library(GenomicFeatures)
+library(biomaRt)                                                                                                                   
+
+
+#Download data
+sgbioplex <- readRDS("remdupanalyzedSGSeq.RDS")
+rownames(colData(sgbioplex)) <- c("wt_89", "wt_90", "wt_91",
+                                  "-NSUN2_92", "-NSUN2_93", "-NSUN2_94")
+colData(sgbioplex)[,1] <- c("Wildtype", "Wildtype", "Wildtype",
+                            "-NSUN2","-NSUN2","-NSUN2")
+ExpressionViewer <- function(experimentList = counts,
+                             metaNames = "geneID", seqStyle = "NCBI"){
+    
+    #Map gene ids to gene symbols
+    listMarts()                                                                                                                           
+    ensembl <- useMart("ensembl",dataset="hsapiens_gene_ensembl")                                                                         
+    filters = listFilters(ensembl)                                                                                                        
+    entrezgene = unique(experimentList@rowRanges@geneID)
+    genes <- getBM(filters="entrezgene_id",
+                   attributes=c("hgnc_symbol","entrezgene_id"),
+                   values=entrezgene, mart=ensembl)                                                                                                                 
+    
+    #user input and page layout specification
+    ui <- fluidPage(
+        titlePanel("Bioplex Expression/Splicing Viewer:"),
+        sidebarLayout(
+            sidebarPanel(
+                selectizeInput(inputId = "genename", label = "Gene Name:",
+                               multiple = FALSE, selected = genes[7,1], 
+                               choices = genes[,1]),
+                uiOutput("tab")
+            ),
+            mainPanel(
+                plotOutput(outputId = "box", width = "100%"), position = "right",
+                br(),
+                plotOutput(outputId = "heat", width = "100%"), position = "right"
+            )
+        )
+    )
+    
+    
+    #server output/plotting specifications
+    server <- function(input, output){
+        getPalette <- colorRampPalette(rev(brewer.pal(9, "Spectral")))
+        #Expression Viewer boxplot
+        output$box <- renderPlot({
+            se <- experimentList
+            cellTypeSplit <- split(x = assay(se)[genes[which(genes$hgnc_symbol == input$genename),2],], f = colData(se)[,1])
+            test <- names(sort(unlist(lapply(cellTypeSplit, FUN = median))))
+            colData(se)[,1] <- list(factor(colData(se)[,1] , levels=test))
+            par(mai = c(0.8,2,0.2,0.5))
+            boxplot(formula = assay(se)[genes[which(genes$hgnc_symbol == input$genename),2],] ~ colData(se)[,1],
+                    data = assay(se),
+                    main = input$genename,
+                    xlab = "Expression (FPKM)",
+                    ylab = "",
+                    cex.axis = 0.8,
+                    horizontal = TRUE,
+                    xlim = c(0,2+1),
+                    col = getPalette(2),
+                    las = 1)
+            rect(xleft = min(assay(se)[genes[which(genes$hgnc_symbol == input$genename),2],]),
+                 xright = max(assay(se)[genes[which(genes$hgnc_symbol == input$genename),2],]),
+                 ybottom = seq(-0.5, 2-.5),
+                 ytop = seq(0.5, 2+.5),
+                 col= c(NA, rgb(.78,.89,1, alpha = 0.25)),
+                 border = NA)
+            height = 150
+        })
+        
+        #SGSeq Heatmap
+        output$heat <- renderPlot({
+            SGSeq::plotFeatures(experimentList,
+                                geneID = genes[which(genes$hgnc_symbol == input$genename),2])
+        })
+        
+        #Reference link
+        url <- a("Sun Z, Xue S, Xu H, Hu X, Chen S, Yang Z, Yang Y, Ouyang J,
+                 Cui H. Effects of NSUN2 deficiency on the mRNA 5-methylcytosine
+                 modification and gene expression profile in HEK293 cells.
+                 Epigenomics. 2019 Feb;11(4):439-453. doi: 10.2217/epi-2018-0169.
+                 Epub 2018 Dec 11. PMID: 30526041.",
+                 href = "https://pubmed.ncbi.nlm.nih.gov/30526041/")
+        output$tab <- renderUI({
+            tagList("Reference Link:", url)
+        })
+    }
+    shinyApp(ui = ui, server = server)
+}
+
+#Call function
+ExpressionViewer(experimentList = sgbioplex)
