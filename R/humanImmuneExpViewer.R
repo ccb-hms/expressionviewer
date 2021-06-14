@@ -21,17 +21,17 @@
 #' The "metaNames" are consistently named for each element of the list. Any
 #' class assumptions are retained when part of a list.
 #'
-#' @experiment A SummarizedExperiment object, SGFEatureCounts object, list of
+#' @param experiment A SummarizedExperiment object, SGFEatureCounts object, list of
 #' SummarizedExperiment objects, or list of SGFEatureCounts objects.
-#' @metaNames A quoted column name for the colData column with the information
+#' @param metaNames A quoted column name for the colData column with the information
 #' to describe the independent variable of the box plot ex. "sample_name"
-#' @printNames An optional name or list of names to be displayed as selection
+#' @param printNames An optional name or list of names to be displayed as selection
 #' choice(s) for the experiment(s) being displayed.
-#' @paper An optional paper title from which the data being displayed was
+#' @param paper An optional paper title from which the data being displayed was
 #' published.
-#' @paperlink An optional url that links to the paper with the "paper"
+#' @param paperlink An optional url that links to the paper with the "paper"
 #' title
-#' @apptitle An optional title for the shiny app that is produced
+#' @param apptitle An optional title for the shiny app that is produced
 #' @return A shiny app displaying the expression (and potential splicing) of
 #' the experiment input
 #' @export
